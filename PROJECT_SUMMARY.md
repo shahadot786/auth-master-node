@@ -212,7 +212,7 @@ All 7 required endpoints implemented:
 
 ### 1. Configure Environment
 ```bash
-cd /Users/shahadot/Desktop/LocalApps/MERN/robust-auth-backend
+cd /Users/shahadot/Desktop/LocalApps/MERN/auth-master-node
 cp .env.example .env
 # Edit .env with your settings
 ```

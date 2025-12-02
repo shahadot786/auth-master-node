@@ -1,5 +1,5 @@
 {
-  "name": "robust-auth-backend",
+  "name": "auth-master-node",
   "version": "1.0.0",
   "description": "Production-grade authentication backend with JWT, refresh tokens, and RBAC",
   "main": "server.js",

@@ -47,7 +47,7 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 ## 📁 Project Structure
 
 ```
-/robust-auth-backend
+/auth-master-node
 ├── /config
 │   ├── database.js          # MongoDB connection
 │   ├── email.js             # Email configuration
@@ -97,7 +97,7 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 ### Step 1: Clone the Repository
 ```bash
 git clone <repository-url>
-cd robust-auth-backend
+cd auth-master-node
 ```
 
 ### Step 2: Install Dependencies
