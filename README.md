@@ -1,6 +1,6 @@
-# 🔐 Robust Authentication Backend
+# 🔐 Robust Authentication Backend (TypeScript)
 
-A production-grade authentication backend built with Node.js, Express.js, MongoDB, JWT access tokens, refresh tokens, and industry-standard security best practices.
+A production-grade authentication backend built with **TypeScript**, Node.js, Express.js, MongoDB, Redis, JWT tokens, and industry-standard security best practices.
 
 ## ✨ Features
 
@@ -8,13 +8,14 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 - **User Registration** with email verification (6-digit OTP)
 - **User Login** with JWT access tokens (15 min expiry) and refresh tokens (30 days)
 - **Secure Token Rotation** - Old refresh tokens are revoked when new ones are issued
-- **Email Verification** using OTP
+- **Email Verification** using OTP stored in Redis
 - **Password Reset** with OTP-based verification
 - **Logout** with token revocation
 
 ### 🛡️ Security
-- **bcrypt** password hashing with 12 salt rounds
+- **bcrypt** password hashing with configurable salt rounds
 - **JWT** access and refresh tokens with secure rotation
+- **Redis** for fast OTP and token storage
 - **Helmet** for HTTP security headers
 - **Rate Limiting** to prevent brute-force attacks
 - **CORS** configuration
@@ -34,12 +35,15 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 - **6-digit OTP** for email verification and password reset
 
 ### 🎯 Additional Features
+- **TypeScript** for type safety and better developer experience
 - **Soft Delete** for user accounts
 - **Pagination** for admin user lists
 - **Winston Logging** with file and console outputs
 - **Morgan** HTTP request logging
 - **Global Error Handler** with detailed error messages
 - **Standardized API Responses**
+- **Swagger/OpenAPI Documentation**
+- **Comprehensive Test Suite** with Jest and Supertest
 - **MVC Architecture** with clean code organization
 
 ---
@@ -49,37 +53,53 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 ```
 /auth-master-node
 ├── /config
-│   ├── database.js          # MongoDB connection
-│   ├── email.js             # Email configuration
-│   └── security.js          # Security settings
+│   ├── database.ts          # MongoDB connection
+│   ├── email.ts             # Email configuration
+│   ├── redis.ts             # Redis configuration
+│   ├── security.ts          # Security settings
+│   └── swagger.ts           # Swagger/OpenAPI config
 ├── /controllers
-│   ├── authController.js    # Authentication logic
-│   └── adminController.js   # Admin operations
+│   ├── authController.ts    # Authentication logic
+│   └── adminController.ts   # Admin operations
 ├── /services
-│   ├── authService.js       # Business logic for auth
-│   ├── emailService.js      # Email sending service
-│   └── tokenService.js      # JWT token management
+│   ├── authService.ts       # Business logic for auth
+│   ├── emailService.ts      # Email sending service
+│   ├── tokenService.ts      # JWT token management
+│   ├── redisOTPService.ts   # OTP management with Redis
+│   └── redisTokenService.ts # Token storage in Redis
 ├── /models
-│   ├── User.js              # User schema
-│   ├── RefreshToken.js      # Refresh token schema
-│   └── OTP.js               # OTP schema
+│   ├── User.ts              # User schema with Mongoose
+│   ├── RefreshToken.ts      # Refresh token schema
+│   └── OTP.ts               # OTP schema
 ├── /routes
-│   ├── authRoutes.js        # Auth endpoints
-│   └── adminRoutes.js       # Admin endpoints
+│   ├── authRoutes.ts        # Auth endpoints
+│   └── adminRoutes.ts       # Admin endpoints
 ├── /middleware
-│   ├── authMiddleware.js    # JWT validation
-│   ├── roleMiddleware.js    # RBAC authorization
-│   ├── errorHandler.js      # Global error handler
-│   ├── rateLimiter.js       # Rate limiting
-│   └── validator.js         # Input validation
+│   ├── authMiddleware.ts    # JWT validation
+│   ├── roleMiddleware.ts    # RBAC authorization
+│   ├── errorHandler.ts      # Global error handler
+│   ├── rateLimiter.ts       # Rate limiting
+│   └── validator.ts         # Input validation
 ├── /utils
-│   ├── responseFormatter.js # Standard responses
-│   ├── logger.js            # Winston logger
-│   ├── validators.js        # Joi schemas
-│   └── helpers.js           # Utility functions
+│   ├── responseFormatter.ts # Standard responses
+│   ├── logger.ts            # Winston logger
+│   ├── validators.ts        # Joi schemas
+│   └── helpers.ts           # Utility functions
+├── /types
+│   └── index.ts             # TypeScript type definitions
+├── /tests
+│   ├── auth.test.ts         # Authentication tests
+│   ├── admin.test.ts        # Admin endpoint tests
+│   ├── setup.ts             # Test configuration
+│   ├── README.md            # Testing guide
+│   └── TEST_RESULTS.md      # Test results
 ├── /logs                    # Log files (auto-generated)
-├── server.js                # Entry point
+├── /dist                    # Compiled JavaScript (auto-generated)
+├── server.ts                # Entry point
+├── tsconfig.json            # TypeScript configuration
+├── jest.config.js           # Jest test configuration
 ├── .env.example             # Environment template
+├── .env.test.example        # Test environment template
 ├── .gitignore
 ├── package.json
 └── README.md
@@ -92,6 +112,7 @@ A production-grade authentication backend built with Node.js, Express.js, MongoD
 ### Prerequisites
 - **Node.js** (v16 or higher)
 - **MongoDB** (local or MongoDB Atlas)
+- **Redis** (local or Redis Cloud)
 - **Gmail Account** (for SMTP) or other email service
 
 ### Step 1: Clone the Repository
@@ -123,6 +144,11 @@ PORT=5000
 MONGODB_URI=mongodb://localhost:27017/robust-auth-db
 # For MongoDB Atlas:
 # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/robust-auth-db
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
 
 # JWT Configuration
 JWT_ACCESS_SECRET=your-super-secret-access-token-key
@@ -160,19 +186,55 @@ FRONTEND_URL=http://localhost:3000
 2. Generate an App Password: https://myaccount.google.com/apppasswords
 3. Use the generated password in `EMAIL_PASSWORD`
 
-### Step 5: Start the Server
+### Step 5: Build and Start the Server
 
-**Development Mode:**
+**Development Mode** (with hot-reloading):
 ```bash
 npm run dev
 ```
 
-**Production Mode:**
+**Build TypeScript**:
+```bash
+npm run build
+```
+
+**Production Mode**:
 ```bash
 npm start
 ```
 
+**Type Checking** (without building):
+```bash
+npm run type-check
+```
+
 The server will start on `http://localhost:5000`
+
+---
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Test Coverage
+- ✅ 21 Authentication endpoint tests
+- ✅ 17 Admin endpoint tests
+- ✅ Full RBAC testing
+- ✅ OTP verification flow
+- ✅ Token refresh and rotation
+- ✅ Password reset flow
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
 
 ---
 
@@ -198,9 +260,17 @@ The server will start on `http://localhost:5000`
 | GET | `/api/admin/stats` | Get dashboard statistics | Admin |
 | GET | `/api/admin/users` | Get all users (paginated) | Admin |
 | GET | `/api/admin/users/:id` | Get user by ID | Admin |
-| PATCH | `/api/admin/users/:id/role` | Update user role | Admin |
+| PUT | `/api/admin/users/:id` | Update user details | Admin |
 | DELETE | `/api/admin/users/:id` | Soft delete user | Admin |
-| PATCH | `/api/admin/users/:id/restore` | Restore deleted user | Admin |
+| POST | `/api/admin/users/:id/restore` | Restore deleted user | Admin |
+
+### Utility Endpoints
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/health` | Health check | Public |
+| GET | `/api-docs` | Swagger documentation | Public |
+| GET | `/api-docs.json` | OpenAPI JSON spec | Public |
 
 ---
 
@@ -296,23 +366,41 @@ Authorization: Bearer <admin_access_token>
 
 ---
 
-## 🔐 Security Best Practices Implemented
+## � API Documentation
+
+Interactive API documentation is available via Swagger UI:
+
+**Local Development**: http://localhost:5000/api-docs
+
+The documentation includes:
+- All endpoint descriptions
+- Request/response schemas
+- Authentication requirements
+- Example requests and responses
+- Try-it-out functionality
+
+---
+
+## �🔐 Security Best Practices Implemented
 
 1. **Password Security**
-   - Bcrypt hashing with 12 salt rounds
+   - Bcrypt hashing with configurable salt rounds
    - Strong password requirements (min 8 chars, uppercase, lowercase, number, special char)
+   - Password never returned in API responses
 
 2. **Token Security**
    - Short-lived access tokens (15 minutes)
-   - Long-lived refresh tokens (30 days) stored in database
+   - Long-lived refresh tokens (30 days) stored in Redis
    - Secure token rotation on refresh
    - Tokens revoked on logout
+   - Token blacklisting support
 
 3. **HTTP Security**
    - Helmet for security headers
    - CORS with specific origin configuration
    - Rate limiting on sensitive endpoints
    - NoSQL injection prevention
+   - Request size limits
 
 4. **Cookie Security**
    - HTTP-only cookies
@@ -324,11 +412,19 @@ Authorization: Bearer <admin_access_token>
    - Joi validation on all inputs
    - Sanitization to prevent XSS
    - Email format validation
+   - Type safety with TypeScript
 
 6. **Error Handling**
    - No sensitive data in error messages
    - Different messages for dev/production
    - Comprehensive logging
+   - Global error handler
+
+7. **TypeScript Benefits**
+   - Compile-time type checking
+   - Better IDE support and autocomplete
+   - Reduced runtime errors
+   - Self-documenting code
 
 ---
 
@@ -342,34 +438,49 @@ Logs are stored in the `/logs` directory:
 
 ---
 
-## 🧪 Testing with Postman
-
-Import the `POSTMAN_COLLECTION.json` file into Postman to test all endpoints.
-
-**Steps:**
-1. Open Postman
-2. Click "Import" → "Upload Files"
-3. Select `POSTMAN_COLLECTION.json`
-4. Set environment variables:
-   - `base_url`: `http://localhost:5000`
-   - `access_token`: (will be set automatically after login)
-   - `refresh_token`: (will be set automatically after login)
-
----
-
 ## 🌐 Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+
+This compiles TypeScript to JavaScript in the `dist/` directory.
 
 ### Environment Variables for Production
 - Set `NODE_ENV=production`
 - Use strong, unique secrets for JWT and cookies
 - Configure MongoDB Atlas connection string
+- Configure Redis Cloud or ElastiCache
 - Set up proper CORS origins
 - Use HTTPS for secure cookies
 
 ### Recommended Hosting
-- **Backend**: Heroku, Railway, Render, DigitalOcean
+- **Backend**: Heroku, Railway, Render, DigitalOcean, AWS
 - **Database**: MongoDB Atlas
+- **Cache**: Redis Cloud, AWS ElastiCache
 - **Email**: SendGrid, AWS SES, or Gmail SMTP
+
+---
+
+## 🛠️ Development
+
+### TypeScript Configuration
+
+The project uses strict TypeScript settings in `tsconfig.json`:
+- Strict type checking enabled
+- ES2020 target
+- ESNext modules
+- Source maps for debugging
+
+### Gradual Type Improvement
+
+Some files use `// @ts-nocheck` for gradual migration. To improve types:
+
+1. Remove `// @ts-nocheck` from a file
+2. Add proper type annotations
+3. Fix any type errors
+4. Test thoroughly
 
 ---
 
@@ -381,7 +492,7 @@ MIT License
 
 ## 👨‍💻 Author
 
-Built with ❤️ using Node.js, Express, and MongoDB
+Built with ❤️ using TypeScript, Node.js, Express, MongoDB, and Redis
 
 ---
 
@@ -394,3 +505,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📞 Support
 
 For issues or questions, please open an issue on GitHub.
+
+---
+
+## 🎯 Roadmap
+
+- [ ] Add email queue with Bull
+- [ ] Add 2FA authentication
+- [ ] Add OAuth integration (Google, GitHub)
+- [ ] Add WebSocket support for real-time notifications
+- [ ] Add GraphQL API
+- [ ] Improve test coverage to 100%
+- [ ] Add performance monitoring
+- [ ] Add API versioning
